@@ -19,10 +19,9 @@ export type ErrorType =
 
 export const newError = (
     type: ErrorType, 
-    error: Error, 
-    code: number, 
+    error: string, 
 ): never => {
-    throw new Error(`[ ${type} ] ${error.message}`);
+    throw new Error(`[ ${type} ] ${error}`);
 }
 
 export const safe = async <T>(

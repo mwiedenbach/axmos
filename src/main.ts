@@ -5,12 +5,9 @@
 
 
 import commands, { helpCommand } from "./services/commands.service";
-import todoService from "./services/todos.service";
 import println from "./utils/println";
+import { safe } from "./errorHandling";
 
-
-// TODO : refactor: replace if-else statements.
-//              implement using safe wrapper.
 const main = async () => {
     const op = process.argv[2];
     
@@ -28,4 +25,3 @@ main().catch((error: unknown) => {
 
     println(`Uknown Error: ${err.message}`);
 });
-// end of main.ts

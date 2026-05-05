@@ -1,13 +1,14 @@
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) 2025 Max Wiedenbach <max.wiedenbach@icloud.com>, All rights reserved.
  *  Licensed under the MIT. See LICENSE.txt for details.
-*--------------------------------------------------------------------------------------------*/
+ *--------------------------------------------------------------------------------------------*/
 
-import path from "node:path";
-import fs from "fs";
-import os from "os";
+import path from 'node:path';
+import fs from 'fs';
+import os from 'os';
 
-import println from "../utils/println";
+import println from '../utils/println';
+import { newError } from '../errorHandling';
 
 interface Todo {
   id: number;
@@ -15,19 +16,19 @@ interface Todo {
   completed: boolean;
 }
 
-let todoList: string = path.join(os.homedir(), "todos.json");
+let todoList: string = path.join(os.homedir(), 'todos.json');
 
-!fs.existsSync(todoList) && fs.writeFileSync(todoList, "");
+!fs.existsSync(todoList) && fs.writeFileSync(todoList, '');
 
 const saveTodos = (todo: Todo[]): void => {
-  fs.writeFileSync(todoList, JSON.stringify(todo, null, 2), "utf-8");
+  fs.writeFileSync(todoList, JSON.stringify(todo, null, 2), 'utf-8');
 };
 
 const loadTodos = (): Todo[] => {
   try {
     if (!fs.existsSync(todoList)) return [];
 
-    const content = fs.readFileSync(todoList, "utf-8").trim();
+    const content = fs.readFileSync(todoList, 'utf-8').trim();
 
     if (!content) return [];
 
@@ -43,17 +44,17 @@ const loadTodos = (): Todo[] => {
 let todos: Todo[] = loadTodos();
 
 const listTodo = () => {
-  println("\n--- MY TODOS ---");
+  println('\n--- MY TODOS ---');
 
-  let todosFromFile: Todo[] = JSON.parse(fs.readFileSync(todoList, "utf-8"));
+  let todosFromFile: Todo[] = JSON.parse(fs.readFileSync(todoList, 'utf-8'));
 
-  if (todos.length === 0) println("List is empty.");
+  if (todos.length === 0) println('List is empty.');
 
   todos.forEach((t) => {
-    const status = t.completed ? "[x]" : "[ ]";
+    const status = t.completed ? '[x]' : '[ ]';
     println(`${t.id}. ${status} ${t.name}`);
   });
-  println("");
+  println('');
 };
 
 const createTodo = (args: string[] | undefined) => {
@@ -61,7 +62,7 @@ const createTodo = (args: string[] | undefined) => {
 
   const newTodo: Todo = {
     id: todos.length > 0 ? Math.max(...todos.map((t) => t.id)) + 1 : 1,
-    name: args.join(" "),
+    name: args.join(' '),
     completed: false,
   };
 
@@ -76,6 +77,12 @@ const createTodo = (args: string[] | undefined) => {
 const deleteTodo = (args: string[] | undefined) => {
   if (!args) return;
   const id = parseInt(args[0]);
+
+  if (isNaN(id)) {
+    newError('OPERATION', `${args[0]} is not a valid number.`);
+    return;
+  } 
+
   todos = todos.filter((t) => t.id !== id);
 
   saveTodos(todos);
@@ -88,6 +95,11 @@ const checkTodo = (args: string[] | undefined) => {
   if (!args || args.length === 0) return;
   const id = parseInt(args[0]);
 
+  if (isNaN(id)) {
+    newError('OPERATION', `${args[0]} is not a valid number.`);
+    return;
+  }
+
   todos = todos.map((t) => (t.id === id ? { ...t, completed: true } : t));
 
   saveTodos(todos);
@@ -98,6 +110,11 @@ const checkTodo = (args: string[] | undefined) => {
 const uncheckTodo = (args: string[] | undefined) => {
   if (!args || args.length === 0) return;
   const id = parseInt(args[0]);
+
+  if (isNaN(id)) {
+    newError('OPERATION', `${args[0]} is not a valid number.`);
+    return;
+  }
 
   todos = todos.map((t) => (t.id === id ? { ...t, completed: false } : t));
 
