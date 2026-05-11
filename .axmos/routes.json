@@ -1,0 +1,7 @@
+{
+    "/api/login": {
+        "method": "get",
+        "origin": "localhost",
+        "port": 3000
+    }
+}

@@ -5,6 +5,7 @@
 
 import { banner, Desc } from "../desc";
 import println from "../utils/println";
+import networkService from "./fetch.service";
 import todoService from "./todos.service";
 
 interface Command {
@@ -26,7 +27,7 @@ const commands: Record<string, Command> = {
     check:  { execute: (args) => todoService.check(args) },
     uncheck: { execute: (args) => todoService.uncheck(args)},
     list:   { execute: () => todoService.list() },
-    
+    fetch: { execute: (args) => networkService.fetchData(args)}
 };
 
 export default commands;
