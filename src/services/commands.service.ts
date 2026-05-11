@@ -9,7 +9,7 @@ import networkService from "./fetch.service";
 import todoService from "./todos.service";
 
 interface Command {
-    execute(args?: string[]): void;
+    execute: (args: string[]) => void | Promise<void>;
 }
 
 export const helpCommand = () => {
@@ -18,7 +18,7 @@ export const helpCommand = () => {
     println(`\n${Desc.program_name} ${Desc.program_version}\n${Desc.copyright_holder},\n${Desc.license}\n`);
 
     println("Usage: node script.js [operation] [argument]");
-    println("Operations: create, delete, list, check, uncheck");
+    println("Operations: create, delete, list, check, uncheck, fetch");
 };
 
 const commands: Record<string, Command> = {
@@ -27,7 +27,7 @@ const commands: Record<string, Command> = {
     check:  { execute: (args) => todoService.check(args) },
     uncheck: { execute: (args) => todoService.uncheck(args)},
     list:   { execute: () => todoService.list() },
-    fetch: { execute: (args) => networkService.fetchData(args)}
+    fetch: { execute: (args) => networkService.fetchData(args[0]) }
 };
 
 export default commands;

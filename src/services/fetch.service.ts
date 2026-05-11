@@ -5,51 +5,82 @@
 
 import fs from "fs";
 import path from "path";
-
+import { DataStructure } from "../typings/fetchData";
 
 const isPresent = <T>(value: T | null | undefined): value is T => {
   return value !== null && value !== undefined;
 };
 
-export const readConfigFile = (): string[] => {
+export const readConfigFile = (): DataStructure[] => {
+  const dotAxmosFolder = path.join(process.cwd(), ".axmos/");
+
+  if (!fs.existsSync(dotAxmosFolder)) return [];
+
+  return fs
+    .readdirSync(dotAxmosFolder)
+    .map(file => {
+      try {
+        return JSON.parse(
+          fs.readFileSync(path.join(dotAxmosFolder, file), "utf-8")
+        ) as DataStructure;
+      } catch {
+        return null;
+      }
+    })
+    .filter(isPresent);
+};
+
+const fetchData = async (args: string) => {
+  const configs = readConfigFile();
+
+  if (configs.length === 0) {
+    console.log("Please provide a valid json file.");
+    return;
+  }
+
+  const mergedConfig = configs.reduce<DataStructure>((acc, curr) => {
+    return { ...acc, ...curr };
+  }, {} as DataStructure);
+
+  const extractedRoute = mergedConfig[args];
+
+  if (!extractedRoute) {
+    console.error(`No config found for route: "${args}"`);
+    return;
+  }
+
+  const protocol = extractedRoute.protocol ?? "https";
+  const uri = extractedRoute.uri.replace(/^\//, ""); // strip leading slash
+  const req = `${protocol}://${extractedRoute.origin}:${extractedRoute.port}/${uri}`;
+
+  console.log(`Fetching ${req}...`);
+
+  try {
+    const res = await fetch(req, {
+      method: extractedRoute.method,
+      headers: extractedRoute.headers,
+      body: extractedRoute.body ? JSON.stringify(extractedRoute.body) : undefined,
+      signal: extractedRoute.timeout
+        ? AbortSignal.timeout(extractedRoute.timeout)
+        : undefined,
+    });
+
+    if (!res) {
+      console.error(`Request failed: ${res}`);
+      return;
+    }
+
+    const data = await res.json();
+    console.log(data);
+    return data;
     
-    const currentDir = process.cwd();
-
-    const dotAxmosFolder: string = path.join(currentDir, ".axmos/");
-
-    /** 
-     * Validates if there is a .axmos folder
-     * if not then returns from the function
-     */
-    if (!fs.existsSync(dotAxmosFolder)) return [];
-
-
-    const files = fs.readdirSync(dotAxmosFolder);
-
-    const configs: string[] = files
-        .map(file => {
-            const filePath = path.join(dotAxmosFolder, file);
-            try {
-                return JSON.parse(fs.readFileSync(filePath, "utf-8"));
-            } catch (e) {
-                return null; 
-            }
-        })
-        .filter(isPresent); // Hier glänzt dein Type Guard!
-
-    return configs;
-}
-
-
-const fetchData = (args: unknown) => {
-    const configsFounded = readConfigFile();
-
-    console.log(configsFounded);
-
-}
+  } catch (e) {
+    console.error("Connection failed:", e);
+  }
+};
 
 const networkService = {
-    fetchData: fetchData,
+  fetchData,
 };
 
 export default networkService;
