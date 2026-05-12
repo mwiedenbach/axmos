@@ -17,8 +17,11 @@ export const helpCommand = () => {
 
     println(`\n${Desc.program_name} ${Desc.program_version}\n${Desc.copyright_holder},\n${Desc.license}\n`);
 
-    println("Usage: node script.js [operation] [argument]");
-    println("Operations: create, delete, list, check, uncheck, fetch");
+    println("Usage: axmos [operation] [argument]");
+    println("--- TODOS ---");
+    println("Operations: create, delete, list, check, uncheck, export");
+    println("--- NETWORKING ---");
+    println("Operations: fetch");
 };
 
 const commands: Record<string, Command> = {
@@ -27,6 +30,7 @@ const commands: Record<string, Command> = {
     check:  { execute: (args) => todoService.check(args) },
     uncheck: { execute: (args) => todoService.uncheck(args)},
     list:   { execute: () => todoService.list() },
+    export: { execute: () => todoService.export() },
     fetch: { execute: (args) => networkService.fetchData(args[0]) }
 };
 
