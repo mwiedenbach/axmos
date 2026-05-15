@@ -9,13 +9,16 @@ type HttpMethod = 'get' | 'post' | 'put' | 'delete' | 'patch';
 interface EndpointConfig {
     protocol: 'http' | 'https';
     origin: string;
-    port: number;
+    port?: number;
     uri: string;
     method: HttpMethod;
     // Optionals
     headers?: Record<string, string>;
     body?: unknown;
     timeout?: number;
+    expected?: {
+        status?: number;
+    }
 }
 
 export interface DataStructure {

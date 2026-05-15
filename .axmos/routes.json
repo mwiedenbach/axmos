@@ -1,16 +1,20 @@
 {
-    "login": {
-        "protocol": "http",
-        "origin": "localhost",
-        "port": 3000,
-        "uri": "/api/metrics",
-        "method": "get"
+    "pass": {
+        "protocol": "https",
+        "origin": "jsonplaceholder.typicode.com",
+        "uri": "/todos/1",
+        "method": "get",
+        "expected": {
+        "status": 200
+    }
     },
-    "setup": {
-        "protocol": "http",
-        "origin": "localhost",
-        "port": 3000,
-        "uri": "/api/setup",
-        "method": "post"
+    "pass": {
+        "protocol": "https",
+        "origin": "jsonplaceholder.typicode.com",
+        "uri": "/todos/1",
+        "method": "get",
+        "expected": {
+        "status": 200
+        }
     }
 }
