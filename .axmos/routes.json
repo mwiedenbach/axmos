@@ -8,13 +8,13 @@
         "status": 200
     }
     },
-    "pass": {
+    "failed": {
         "protocol": "https",
         "origin": "jsonplaceholder.typicode.com",
         "uri": "/todos/1",
         "method": "get",
         "expected": {
-        "status": 200
+        "status": 201
         }
     }
 }

@@ -1,102 +1,45 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) 2025 Max Wiedenbach <max.wiedenbach@icloud.com>, All rights reserved.
- *  Licensed under the MIT License. See LICENSE.txt for details.
- *--------------------------------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------------------------
+ * Copyright (c) 2026 Max Wiedenbach <max.wiedenbach@icloud.com>, All rights reserved.
+ * Licensed under the MIT License. See LICENSE.txt for details.
+ *---------------------------------------------------------------------------------------*/
 
-import fs from 'fs';
-import path from 'path';
-import { DataStructure } from '../typings/fetchData';
+import Colors from "../utils/Colors";
+import { loadConfigs } from "./fetch/config";
+import { buildRequestUrl, createFetchOptions } from "./fetch/urlBuilder";
 
-const isPresent = <T>(value: T | null | undefined): value is T => {
-    return value !== null && value !== undefined;
+const logStatus = (passed: boolean, status: number) => {
+    const label = passed
+        ? `${Colors.Background.Green} PASS ${Colors.Reset}`
+        : `${Colors.Background.Red} FAIL ${Colors.Reset}`;
+    console.log(`${label} Server responded with: ${status}`);
 };
 
-export const readConfigFile = (): DataStructure[] => {
-    const dotAxmosFolder = path.join(process.cwd(), '.axmos/');
+const fetchData = async (routeKey: string) => {
+    const mergedConfig = loadConfigs();
+    const routeConfig = mergedConfig[routeKey];
 
-    if (!fs.existsSync(dotAxmosFolder)) return [];
-
-    return fs
-        .readdirSync(dotAxmosFolder)
-        .map((file) => {
-            try {
-                return JSON.parse(
-                    fs.readFileSync(path.join(dotAxmosFolder, file), 'utf-8'),
-                ) as DataStructure;
-            } catch {
-                return null;
-            }
-        })
-        .filter(isPresent);
-};
-
-const validationOfStatus = (res: Response, expectedStatus: number): boolean => {
-    if (res.status === expectedStatus) return true;
-
-    return false;
-};
-
-const fetchData = async (args: string) => {
-    const configs = readConfigFile();
-
-    if (configs.length === 0) {
-        console.log('Please provide a valid json file.');
+    if (!routeConfig) {
+        console.error(`${Colors.Background.Red} ERROR ${Colors.Reset} No config for: "${routeKey}"`);
         return;
     }
 
-    const mergedConfig = configs.reduce<DataStructure>((acc, curr) => {
-        return { ...acc, ...curr };
-    }, {} as DataStructure);
-
-    const extractedRoute = mergedConfig[args];
-
-    if (!extractedRoute) {
-        console.error(`No config found for route: "${args}"`);
-        return;
-    }
-
-    const protocol = extractedRoute.protocol ?? 'https';
-    const uri = extractedRoute.uri.replace(/^\//, ''); // strip leading slash
-    const req = `${protocol}://${extractedRoute.origin}${extractedRoute.port ? `:${extractedRoute.port}` : ''}/${uri}`;
-    console.log(`Fetching ${req}...`);
+    const url = buildRequestUrl(routeConfig);
+    console.log(`Fetching ${url}...`);
 
     try {
-        const res = await fetch(req, {
-            method: extractedRoute.method,
-            headers: extractedRoute.headers,
-            body: extractedRoute.body
-                ? JSON.stringify(extractedRoute.body)
-                : undefined,
-            signal: extractedRoute.timeout
-                ? AbortSignal.timeout(extractedRoute.timeout)
-                : undefined,
-        });
+        const response = await fetch(url, createFetchOptions(routeConfig));
 
-        if (!res) {
-            console.error(`Request failed: ${res}`);
-            return;
+        if (routeConfig.expected?.status) {
+            const isCorrect = response.status === routeConfig.expected.status;
+            logStatus(isCorrect, response.status);
         }
 
-        if (extractedRoute.expected?.status) {
-            const expectedStatus: boolean = validationOfStatus(
-                res,
-                extractedRoute.expected.status,
-            );
-            expectedStatus
-                ? console.log(`Passed: Server responsed with: ${res.status}`)
-                : console.log(`Failed: Server responsed with: ${res.status}`);
-        }
-
-        const data = await res.json();
-        console.log(`Status: ${res.status}\n${JSON.stringify(data, null, 2)}`);
+        const data = await response.json();
+        console.log(`Status: ${response.status}\n`, JSON.stringify(data, null, 2));
         return data;
     } catch (e) {
-        console.error('Connection failed:', e);
+        console.error(`${Colors.Background.Red} CONN FAIL ${Colors.Reset}`, e);
     }
 };
 
-const networkService = {
-    fetchData,
-};
-
-export default networkService;
+export default { fetchData };

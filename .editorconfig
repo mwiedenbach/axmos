@@ -1,0 +1,30 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Tab indentation
+[*]
+indent_style = tab
+trim_trailing_whitespace = true
+
+[{*.md, *.txt}]
+indent_style = tab
+indent_size = 4
+
+[*.tsx]
+indent_style = space
+indent_size = 4
+
+[*.ts]
+indent_style = tab
+indent_size = 8
+
+[*.scss]
+indent_size = 4
+
+# The indent size used in the package.json file cannot be changed
+# https://github.com/npm/npm/pull/3180#issuecomment-16336516
+[{*.yml,*.yaml,package.json}]
+indent_style = space
+indent_size = 2
