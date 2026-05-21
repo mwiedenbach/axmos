@@ -9,22 +9,24 @@ import os from 'os';
 
 import println from '../utils/println';
 import { newError } from '../errorHandling';
+import { exportInMarkDown } from './export.service';
+import { importMarkDown } from './import.service';
 
-interface Todo {
+export interface Todo {
   id: number;
   name: string;
   completed: boolean;
 }
 
-let todoList: string = path.join(os.homedir(), 'todos.json');
+export let todoList: string = path.join(os.homedir(), 'todos.json');
 
 !fs.existsSync(todoList) && fs.writeFileSync(todoList, '');
 
-const saveTodos = (todo: Todo[]): void => {
+export const saveTodos = (todo: Todo[]): void => {
   fs.writeFileSync(todoList, JSON.stringify(todo, null, 2), 'utf-8');
 };
 
-const loadTodos = (): Todo[] => {
+export const loadTodos = (): Todo[] => {
   try {
     if (!fs.existsSync(todoList)) return [];
 
@@ -81,7 +83,7 @@ const deleteTodo = (args: string[] | undefined) => {
   if (isNaN(id)) {
     newError('OPERATION', `${args[0]} is not a valid number.`);
     return;
-  } 
+  }
 
   todos = todos.filter((t) => t.id !== id);
 
@@ -123,27 +125,6 @@ const uncheckTodo = (args: string[] | undefined) => {
   listTodo();
 };
 
-const exportInMarkDown = () => {
-    const list: Todo[] = JSON.parse(fs.readFileSync(todoList, "utf-8"));
-    
-    let checked: boolean = false;
-    let name: string = "";
-
-    const outPath: string = path.join(`${process.cwd()}/.axmos/`, `todo.${new Date().toISOString().split('T')[0]}.md`);
-     
-    // Writes the headline into the markdown file.
-    fs.appendFileSync(outPath, `# TODO List ${new Date().toString()}\n\n`);
-
-    // Writes todos inside of the file.
-    list.forEach((todo) => {
-        fs.appendFileSync(outPath, `${todo.completed ? "[ X ]" : "[ ]"} - ${todo.name}\n`);
-   });
-    
-    // file generated via axmos
-    fs.appendFileSync(outPath, "\n\nFile was generated via axmos\n\n");
-
-    println("Done");
-};
 
 const todoService = {
   create: createTodo,
@@ -152,6 +133,7 @@ const todoService = {
   uncheck: uncheckTodo,
   list: listTodo,
     export: exportInMarkDown,
+	import: importMarkDown
 };
 
 export default todoService;

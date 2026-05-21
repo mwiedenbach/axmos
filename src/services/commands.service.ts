@@ -30,7 +30,8 @@ const commands: Record<string, Command> = {
     check:  { execute: (args) => todoService.check(args) },
     uncheck: { execute: (args) => todoService.uncheck(args)},
     list:   { execute: () => todoService.list() },
-    export: { execute: () => todoService.export() },
+	export: { execute: () => todoService.export() },
+    import: { execute: (args) => todoService.import(args) },
     fetch: { execute: (args) => networkService.fetchData(args[0]) }
 };
 
